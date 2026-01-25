@@ -6,7 +6,7 @@ export default async function handler(
   response: VercelResponse,
 ) {
   // Allow requests from our Firebase app
-  response.setHeader('Access-Control-Allow-Origin', 'https://duck-fortune-teller.web.app');
+  response.setHeader('Access-Control-Allow-Origin', '*'); // Temporarily allow all origins for local development
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
