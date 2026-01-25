@@ -1,10 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
 
-export default async function handler(
-  request: VercelRequest,
-  response: VercelResponse,
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function handler(request: any, response: any) {
   // Allow requests from our Firebase app
   response.setHeader('Access-Control-Allow-Origin', 'https://duck-fortune-teller.web.app');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
