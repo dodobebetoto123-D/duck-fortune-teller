@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { tarotDeck, TarotCard } from '../data/tarot-data';
+import { tarotDeck, type TarotCard } from '../data/tarot-data';
 import './TarotPage.css';
 
 const TarotPage: React.FC = () => {

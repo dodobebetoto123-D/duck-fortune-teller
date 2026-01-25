@@ -37,7 +37,8 @@ export default async function handler(
     You are giving a traditional Saju reading, but with a fun and modern twist.
     Keep the response in Korean, be concise (under 200 characters), and always speak in a friendly, duck-like tone, maybe add a "꽥!"(quack!) at the end.
 
-    Analyze the following birth date and time to give a short, encouraging fortune for today: ${birthDate}
+    Analyze the following birth information, which may or may not include a specific time. If the time is unknown (indicated by "시간 모름"), consider giving a slightly more general fortune that focuses on the day.
+    Birth information: ${birthDate}
   `;
 
   try {
