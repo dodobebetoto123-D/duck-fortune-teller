@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Gaegu', cursive;
+  background-color: #fdfdfd;
+  color: #213547;
+  display: flex;
+  justify-content: center;
+  padding-top: 5rem;
+}
+
+#root {
+  text-align: center;
+}
+
+nav {
+  padding: 1em 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #eee;
+}
+
+nav a {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 1.5rem;
+  color: #ff8c00; /* DarkOrange */
+  text-decoration: none;
+}
+
+nav a:hover {
+  color: #ffa500; /* Orange */
+}
+
+h1 {
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+}
+
+p {
+    font-size: 1.5rem;
+    color: #555;
+}
+
+.duck-image {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 2rem;
+}
+
+.nav-buttons a {
+    display: inline-block;
+    background-color: #ffc107; /* Amber */
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 1.8rem;
+    margin: 0 1rem;
+    transition: background-color 0.3s;
+}
+
+.nav-buttons a:hover {
+    background-color: #ffab00; /* Amber darker */
+    color: white;
+}
+
+.logout-button {
+  margin-top: 2rem;
+  background-color: #888;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: 'Gaegu', cursive;
+}
+.logout-button:hover {
+  background-color: #666;
+}
