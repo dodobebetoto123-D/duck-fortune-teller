@@ -22,7 +22,7 @@ export default async function handler(
   const openRouterKey = process.env.OPENROUTER_API_KEY;
 
   if (!openRouterKey) {
-    return response.status(500).json({ error: 'API key is not configured.' });
+    return response.status(500).json({ error: 'OpenRouter API key is not configured. Please set the OPENROUTER_API_KEY environment variable.' });
   }
 
   const { birthDate } = request.body;
@@ -59,7 +59,7 @@ export default async function handler(
     const fortune = apiResponse.data.choices[0].message.content;
     return response.status(200).json({ fortune });
   } catch (error: any) {
-    console.error('Error calling OpenRouter API:', error.response?.data);
+    console.error('Error calling OpenRouter API:', error.message, error.response?.data);
     return response.status(500).json({ error: 'Failed to get fortune from AI.' });
   }
 }
