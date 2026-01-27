@@ -19,10 +19,10 @@ export default async function handler(
     return response.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const hfToken = process.env.HF_TOKEN;
 
-  if (!openRouterKey) {
-    return response.status(500).json({ error: 'OpenRouter API key is not configured. Please set the OPENROUTER_API_KEY environment variable.' });
+  if (!hfToken) {
+    return response.status(500).json({ error: 'Hugging Face API key is not configured. Please set the HF_TOKEN environment variable.' });
   }
 
   const { birthDate } = request.body;
@@ -42,24 +42,32 @@ export default async function handler(
   `;
 
   try {
+    const model = "google/gemma-2b-it";
     const apiResponse = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
+      `https://api-inference.huggingface.co/models/${model}`,
       {
-        model: 'tngtech/deepseek-r1t2-chimera:free',
-        messages: [{ role: 'user', content: prompt }],
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: 150,
+          temperature: 0.7,
+          return_full_text: false,
+        },
       },
       {
         headers: {
-          'Authorization': `Bearer ${openRouterKey}`,
+          'Authorization': `Bearer ${hfToken}`,
           'Content-Type': 'application/json',
         },
       },
     );
 
-    const fortune = apiResponse.data.choices[0].message.content;
+    const fortune = apiResponse.data[0].generated_text.trim();
     return response.status(200).json({ fortune });
   } catch (error: any) {
-    console.error('Error calling OpenRouter API:', error.message, error.response?.data);
+    console.error('Error calling Hugging Face API:', error.message, error.response?.data);
+    if (error.response?.data?.error?.includes("is currently loading")) {
+      return response.status(503).json({ error: "The model is currently loading, please try again in a few moments." });
+    }
     return response.status(500).json({ error: 'Failed to get fortune from AI.' });
   }
 }

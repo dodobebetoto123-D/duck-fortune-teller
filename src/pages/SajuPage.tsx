@@ -28,7 +28,7 @@ const SajuPage: React.FC = () => {
     setFortune(''); // Clear previous fortune
 
     const fullBirthDate = unknownBirthTime ? `${birthDate} 시간 모름` : `${birthDate} ${birthTime}`;
-    const apiUrl = 'https://duck-fortune-teller.vercel.app/api/getSajuFortune';
+    const apiUrl = '/api/getSajuFortune';
 
     try {
       const response = await axios.post(apiUrl, { birthDate: fullBirthDate });
