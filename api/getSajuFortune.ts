@@ -9,8 +9,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
+  // api/getSajuFortune.ts 맨 위에서
+  const token = process.env.HUGGINGFACE_TOKEN;   // ← 이걸로 바꿔
+  // const token = process.env.HF_TOKEN;        // 이건 주석처리
 
-  const token = process.env.HF_TOKEN;
   if (!token) return res.status(500).json({ error: "HF_TOKEN 없음" });
 
   const { birthDate } = req.body;
