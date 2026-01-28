@@ -1,3 +1,5 @@
+// api/getSajuFortune.ts (또는 .js)
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
 
@@ -5,12 +7,10 @@ export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ) {
-  // Allow requests from our Firebase app
-  response.setHeader('Access-Control-Allow-Origin', '*'); // Temporarily allow all origins for local development
+  response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle preflight CORS request
   if (request.method === 'OPTIONS') {
     return response.status(200).end();
   }
@@ -20,54 +20,71 @@ export default async function handler(
   }
 
   const hfToken = process.env.HF_TOKEN;
-
   if (!hfToken) {
-    return response.status(500).json({ error: 'Hugging Face API key is not configured. Please set the HF_TOKEN environment variable.' });
+    return response.status(500).json({ 
+      error: 'HF_TOKEN이 설정되지 않았습니다! Vercel에 환경변수 추가해주세요.' 
+    });
   }
 
   const { birthDate } = request.body;
-
   if (!birthDate) {
-    return response.status(400).json({ error: "The function must be called with one argument 'birthDate'." });
+    return response.status(400).json({ error: 'birthDate가 필요합니다.' });
   }
 
-  const prompt = `
-    You are a wise and witty fortune-telling duck.
-    Your name is "운세덕".
-    You are giving a traditional Saju reading, but with a fun and modern twist.
-    Keep the response in Korean, be concise (under 200 characters), and always speak in a friendly, duck-like tone, maybe add a "꽥!"(quack!) at the end.
+  const prompt = `너는 귀엽고 재치 있는 오리 점술가 "운세덕"이야!
+생년월일: ${birthDate}
 
-    Analyze the following birth information, which may or may not include a specific time. If the time is unknown (indicated by "시간 모름"), consider giving a slightly more general fortune that focuses on the day.
-    Birth information: ${birthDate}
-  `;
+사주 운세를 재미있고 현대적으로 풀어줘. 
+200자 이내로, 한국어로, 항상 친근한 말투로 쓰고 마지막에 "꽥!" 붙여줘!`;
 
   try {
-    const model = "google/gemma-2b-it";
+    // 이 모델은 무료로 항상 켜져 있어요! (2025년 1월 기준)
+    const model = "mistralai/Mistral-7B-Instruct-v0.3";
+
     const apiResponse = await axios.post(
       `https://api-inference.huggingface.co/models/${model}`,
       {
         inputs: prompt,
         parameters: {
-          max_new_tokens: 150,
-          temperature: 0.7,
+          max_new_tokens: 200,
+          temperature: 0.8,
+          top_p: 0.9,
           return_full_text: false,
         },
       },
       {
         headers: {
-          'Authorization': `Bearer ${hfToken}`,
+          Authorization: `Bearer ${hfToken}`,
           'Content-Type': 'application/json',
         },
+        timeout: 30000, // 30초 타임아웃
       },
     );
 
-    const fortune = apiResponse.data[0].generated_text.trim();
-    return response.status(200).json({ fortune });
-  } catch (error: any) {
-    console.error('Error calling Hugging Face API:', error.message, error.response?.data);
-    if (error.response?.data?.error?.includes("is currently loading")) {
-      return response.status(503).json({ error: "The model is currently loading, please try again in a few moments." });
+    let fortune = apiResponse.data[0]?.generated_text?.trim();
+
+    // 만약 모델이 inputs를 반복했다면 제거
+    if (fortune.startsWith(prompt)) {
+      fortune = fortune.replace(prompt, '').trim();
     }
-    return response.status(500).json({ error: 'Failed to get fortune from AI.' });
+
+    // 빈 응답 방지
+    if (!fortune) fortune = "오늘은 운세덕이 너무 졸려서... 내일 다시 와줘 꽥!";
+
+    return response.status(200).json({ fortune });
+
+  } catch (error: any) {
+    console.error('HF API Error:', error.message);
+
+    // 모델 로딩 중일 때
+    if (error.response?.data?.error?.includes('loading')) {
+      return response.status(503).json({ 
+        error: '운세덕이 지금 잠에서 깨고 있어... 30초 후에 다시 시도해줘 꽥!' 
+      });
+    }
+
+    return response.status(500).json({ 
+      error: '운세덕이 꽥꽥대느라 정신없나봐... 다시 시도해줘!' 
+    });
   }
 }

@@ -9,12 +9,12 @@ export const getSajuFortune = onCall(
   { region: "asia-northeast3" },
   async (request) => {
     // (functions as any)를 사용하여 타입스크립트 검사를 우회하고 v1의 config()에 접근합니다.
-    const hfToken = (functions as any).config().huggingface?.key;
+    const openRouterKey = (functions as any).config().openrouter.key;
 
-    if (!hfToken) {
+    if (!openRouterKey) {
       throw new HttpsError(
         "internal",
-        "Hugging Face API key is not configured.",
+        "OpenRouter API key is not configured.",
       );
     }
 
@@ -36,35 +36,24 @@ export const getSajuFortune = onCall(
     `;
 
     try {
-      const model = "google/gemma-2b-it";
       const response = await axios.post(
-        `https://api-inference.huggingface.co/models/${model}`,
+        "https://openrouter.ai/api/v1/chat/completions",
         {
-          inputs: prompt,
-          parameters: {
-            max_new_tokens: 150,
-            temperature: 0.7,
-            return_full_text: false,
-          },
+          model: "tngtech/deepseek-r1t2-chimera:free",
+          messages: [{role: "user", content: prompt}],
         },
         {
           headers: {
-            "Authorization": `Bearer ${hfToken}`,
+            "Authorization": `Bearer ${openRouterKey}`,
             "Content-Type": "application/json",
           },
         },
       );
 
-      const fortune = response.data[0].generated_text.trim();
+      const fortune = response.data.choices[0].message.content;
       return { fortune };
     } catch (error: any) {
-      console.error("Error calling Hugging Face API:", error.response?.data);
-      if (error.response?.data?.error?.includes("is currently loading")) {
-        throw new HttpsError(
-          "unavailable",
-          "The model is currently loading, please try again in a few moments.",
-        );
-      }
+      console.error("Error calling OpenRouter API:", error.response?.data);
       throw new HttpsError(
         "internal",
         "Failed to get fortune from AI.",
