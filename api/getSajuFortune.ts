@@ -1,87 +1,46 @@
-// api/getSajuFortune.ts
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import axios from 'axios';
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
-  // CORS
+const MODEL = "mistralai/Mistral-7B-Instruct-v0.3";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'POST만 허용' });
+  if (req.method !== 'POST') return res.status(405).end();
 
   const token = process.env.HF_TOKEN;
-
-  // 1. 토큰 없으면 바로 알려줌
-  if (!token) {
-    return res.status(500).json({ 
-      error: 'HF_TOKEN 환경변수가 없어요! Vercel에 꼭 추가해주세요!' 
-    });
-  }
+  if (!token) return res.status(500).json({ error: "HF_TOKEN 없음" });
 
   const { birthDate } = req.body;
-  if (!birthDate) return res.status(400).json({ error: '생년월일이 필요해요' });
+  if (!birthDate) return res.status(400).json({ error: "생일 없음" });
 
   try {
-    // 이 모델은 2025년 1월 기준 무료 계정에서도 거의 항상 켜져 있음!
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
-      {
-        inputs: `너는 귀여운 오리 점술가 "운세덕"이야! 생년월일: ${birthDate}\n오늘 운세를 150자 이내로 귀엽고 재미있게 말해줘. 마지막에 꼭 "꽥!" 붙여줘!`,
-        parameters: {
-          max_new_tokens: 200,
-          temperature: 0.85,
-          top_p: 0.9,
-          return_full_text: false,
-        },
+    const response = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000,
-      },
-    );
+      body: JSON.stringify({
+        inputs: `오리 점술가 운세덕이야! 생일: ${birthDate}\n오늘 운세 120자 이내로 귀엽게 말해줘 꽥!`,
+        parameters: { max_new_tokens: 150, temperature: 0.8, return_full_text: false }
+      })
+    });
 
-    let fortune = response.data[0]?.generated_text?.trim();
-
-    // 프롬프트 반복 제거
-    if (fortune?.includes(birthDate)) {
-      fortune = fortune.split('꽥!').pop()?.trim() || fortune;
+    if (!response.ok) {
+      const err = await response.text();
+      console.error("HF 응답 에러:", err);
+      return res.status(500).json({ error: "모델 깨우는 중", detail: err });
     }
 
-    fortune = fortune || '오늘은 모든 일이 잘 풀리는 날이야! 행운이 꽥꽥!';
+    const data = await response.json();
+    const fortune = data[0]?.generated_text?.trim() || "오늘 대박날 거야 꽥!";
 
     return res.status(200).json({ fortune });
 
-  } catch (error: any) {
-    // 진짜 에러 원인 보여주기 (이제 숨김 없음!)
-    console.error('HuggingFace 실제 에러:', error.response?.data || error.message);
-
-    // 모델 로딩 중일 때
-    if (error.response?.data?.error?.includes('loading')) {
-      return res.status(503).json({ 
-        error: '운세덕이 지금 깨우는 중이야... 20~30초 후에 다시 눌러줘 꽥!' 
-      });
-    }
-
-    // 토큰 문제일 때
-    if (error.response?.status === 401) {
-      return res.status(500).json({ 
-        error: 'HF_TOKEN이 잘못됐어요! 다시 발급받아서 넣어주세요.' 
-      });
-    }
-
-    // 그 외 모든 에러
-    return res.status(500).json({ 
-      error: '운세덕이 꽥 하고 놀랐나봐...',
-      detail: error.response?.data || error.message
-    });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
   }
 }
