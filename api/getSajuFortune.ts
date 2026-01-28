@@ -45,4 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (e: any) {
     return res.status(500).json({ error: e.message });
   }
+  if (!token) {
+    return res.status(500).json({ error: "HUGGINGFACE_TOKEN 없음 ㅋ" });
+  }
 }
