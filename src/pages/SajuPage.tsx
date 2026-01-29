@@ -28,10 +28,11 @@ const SajuPage: React.FC = () => {
     setFortune(''); // Clear previous fortune
 
     const fullBirthDate = unknownBirthTime ? `${birthDate} 시간 모름` : `${birthDate} ${birthTime}`;
-    const apiUrl = '/api/getSajuFortune';
+    const apiUrl = 'https://duck-fortune-teller-production.up.railway.app/api/getSajuFortune'
 
     try {
-      const response = await axios.post(apiUrl, { birthDate: fullBirthDate });
+      const response = await axios.post('https://duck-fortune-teller-production.up.railway.app/api/getSajuFortune',
+      { birthDate: fullBirthDate });
       setFortune(response.data.fortune);
     } catch (err: any) {
       setError('운세를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
