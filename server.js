@@ -55,7 +55,7 @@ app.post('/api/getSajuFortune', async (req, res) => {
 // 빌드된 리액트 파일 서빙
 app.use(express.static(path.join(__dirname, 'dist')));
 
-app.get('(.*)', (req, res) => {
+app.get(/^((?!\/api).)*$/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
