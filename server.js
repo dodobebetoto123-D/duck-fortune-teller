@@ -1,9 +1,16 @@
 // server.js
-const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+import express from 'express';
+import axios from 'axios';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// ES Module 환경에서는 __dirname이 없어서 직접 만들어줘야 합니다.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,9 +18,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// 1. 기존 getSajuFortune.ts의 로직을 여기로 가져왔습니다.
+// API 엔드포인트
 app.post('/api/getSajuFortune', async (req, res) => {
-  const token = process.env.OPENROUTER_API_KEY; // Railway 환경변수
+  const token = process.env.OPENROUTER_API_KEY;
   const { birthDate } = req.body;
 
   if (!token) return res.status(500).json({ error: 'API 키가 없습니다.' });
@@ -29,18 +36,23 @@ app.post('/api/getSajuFortune', async (req, res) => {
         }],
         temperature: 0.9
       },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { 
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        } 
+      }
     );
 
     const fortune = response.data.choices[0]?.message?.content?.trim();
     res.json({ fortune });
   } catch (e) {
-    console.error(e);
+    console.error('에러 상세:', e.response?.data || e.message);
     res.status(500).json({ error: '운세덕이 졸고 있어요 꽥!' });
   }
 });
 
-// 2. 리액트 빌드 파일(dist 폴더)을 서버가 직접 보여주게 합니다.
+// 빌드된 리액트 파일 서빙
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('*', (req, res) => {
