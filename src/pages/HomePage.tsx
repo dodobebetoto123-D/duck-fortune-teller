@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import AdFit from '../components/AdFit'; // AdFit 컴포넌트 임포트
 
 const HomePage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -42,6 +43,11 @@ const HomePage: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* 카카오 애드핏 광고 */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+        <AdFit adUnit="DAN-123456789" adWidth="300" adHeight="100" />
+      </div>
     </div>
   );
 };
